@@ -2,13 +2,11 @@ name: Deploy Cloud Function
 
 on:
   pull_request:
-    types: [closed]
     branches:
-      - main
+      - main  # Deploy only when PRs are merged into the main branch
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +28,7 @@ jobs:
       with:
         credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-    - name: Deploy to Cloud Functions (Gen 2)
+    - name: Deploy to Cloud Functions
       run: |
         gcloud functions deploy load_data_to_bigquery \
           --gen2 \
@@ -43,7 +41,8 @@ jobs:
           --memory 16Gi \
           --timeout 3600s \
           --cpu 4 \
-          --service-account ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+          --service-account ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }} \
+          --set-env-vars KAGGLE_USERNAME=${{ secrets.KAGGLE_USERNAME }},KAGGLE_KEY=${{ secrets.KAGGLE_KEY }}
 
     - name: Verify Deployment
       run: |

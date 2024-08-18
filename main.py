@@ -20,35 +20,16 @@ OUTCOMES_TABLE_ID = 'stg_outcomes'
 # Set your Kaggle dataset details
 KAGGLE_DATASET = 'mexwell/uk-police-data'
 
-
-def access_secret_version(secret_id):
-    """Access the payload for the given secret version."""
-    client = secretmanager.SecretManagerServiceClient()
-    name = f"projects/{PROJECT_ID}/secrets/{secret_id}/versions/latest"
-    response = client.access_secret_version(name=name)
-    return response.payload.data.decode("UTF-8")
-
-
 def download_kaggle_dataset(temp_dir):
     """Download the Kaggle dataset and extract files matching the target patterns."""
-    kaggle_username = access_secret_version('KAGGLE_USERNAME')
-    kaggle_key = access_secret_version('KAGGLE_KEY')
+    kaggle_username = os.environ['KAGGLE_USERNAME']
+    kaggle_key = os.environ['KAGGLE_KEY']
 
-    # Create the Kaggle configuration directory
-    os.makedirs(os.path.join(os.path.expanduser('~'), '.kaggle'), exist_ok=True)
+    # Set environment variables directly
+    os.environ['KAGGLE_USERNAME'] = kaggle_username
+    os.environ['KAGGLE_KEY'] = kaggle_key
 
-    # Write the kaggle.json file
-    kaggle_json = {
-        "username": kaggle_username,
-        "key": kaggle_key
-    }
-
-    with open(os.path.join(os.path.expanduser('~'), '.kaggle/kaggle.json'), 'w') as f:
-        json.dump(kaggle_json, f)
-
-    # Set the permissions for the kaggle.json file
-    os.chmod(os.path.join(os.path.expanduser('~'), '.kaggle/kaggle.json'), 0o600)
-
+    # Now authenticate using these environment variables
     kaggle.api.authenticate()
 
     kaggle.api.dataset_download_files(KAGGLE_DATASET, path=temp_dir, unzip=False)
