@@ -34,9 +34,20 @@ def download_kaggle_dataset(temp_dir):
     kaggle_username = access_secret_version('KAGGLE_USERNAME')
     kaggle_key = access_secret_version('KAGGLE_KEY')
 
-    # Set environment variables for Kaggle authentication
-    os.environ['KAGGLE_USERNAME'] = kaggle_username
-    os.environ['KAGGLE_KEY'] = kaggle_key
+    # Create the Kaggle configuration directory
+    os.makedirs(os.path.join(os.path.expanduser('~'), '.kaggle'), exist_ok=True)
+
+    # Write the kaggle.json file
+    kaggle_json = {
+        "username": kaggle_username,
+        "key": kaggle_key
+    }
+
+    with open(os.path.join(os.path.expanduser('~'), '.kaggle/kaggle.json'), 'w') as f:
+        json.dump(kaggle_json, f)
+
+    # Set the permissions for the kaggle.json file
+    os.chmod(os.path.join(os.path.expanduser('~'), '.kaggle/kaggle.json'), 0o600)
 
     kaggle.api.authenticate()
 
