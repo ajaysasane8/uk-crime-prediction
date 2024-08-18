@@ -1,12 +1,14 @@
 name: Deploy Cloud Function
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
-      - main  # Deploy when code is pushed to the main branch
+      - main
 
 jobs:
   deploy:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
@@ -28,12 +30,24 @@ jobs:
       with:
         credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-    - name: Deploy to Cloud Functions
+    - name: Deploy to Cloud Functions (Gen 2)
       run: |
         gcloud functions deploy load_data_to_bigquery \
+          --gen2 \
           --runtime python310 \
           --trigger-http \
           --allow-unauthenticated \
           --project ${{ secrets.GCP_PROJECT_ID }} \
           --region ${{ secrets.GCP_REGION }} \
-          --entry-point load_data_to_bigquery
+          --entry-point load_data_to_bigquery \
+          --memory 16Gi \
+          --timeout 3600s \
+          --cpu 4 \
+          --service-account ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+    - name: Verify Deployment
+      run: |
+        gcloud functions describe load_data_to_bigquery \
+          --region ${{ secrets.GCP_REGION }} \
+          --gen2 \
+          --project ${{ secrets.GCP_PROJECT_ID }}

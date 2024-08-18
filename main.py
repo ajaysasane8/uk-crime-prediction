@@ -34,9 +34,6 @@ def download_kaggle_dataset(temp_dir):
     kaggle_username = access_secret_version('KAGGLE_USERNAME')
     kaggle_key = access_secret_version('KAGGLE_KEY')
 
-    os.environ['KAGGLE_USERNAME'] = kaggle_username
-    os.environ['KAGGLE_KEY'] = kaggle_key
-
     kaggle.api.authenticate()
 
     kaggle.api.dataset_download_files(KAGGLE_DATASET, path=temp_dir, unzip=False)
